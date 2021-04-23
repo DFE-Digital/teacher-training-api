@@ -108,7 +108,7 @@ class Provider < ApplicationRecord
 
   validates :provider_name, length: { maximum: 100 }, on: :update, if: RecruitmentCycle.current_recruitment_cycle
 
-  validates :urn, length: { in: 5..6 }, if: :lead_school?, allow_nil: true
+  validate :urn_valid?, if: :lead_school?
 
   validates :telephone, phone: { message: "^Enter a valid telephone number" }, if: :telephone_changed?
 
@@ -293,6 +293,14 @@ private
       Providers::GenerateUniqueCourseCodeService.new(
         generate_course_code_service: Providers::GenerateCourseCodeService.new,
       )
+    end
+  end
+
+  def urn_valid?
+    urn = self.urn
+    return if urn.blank?
+    if !urn.length.between?(5, 6) || !urn.match?(/\A-?\d+\Z/)
+      errors.add(:urn, "^URN must be 5 or 6 numbers")
     end
   end
 end
